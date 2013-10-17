@@ -9,6 +9,8 @@ Allows you to define the following variables:
 	minBet = 5
 	maxBet = 900
 
+| Variable        | Description         |
+| ------------- |-------------|
 | **fund**   | The starting capital |
 | **depth**  | The typical Martingale strategy uses a depth of 1. E.g. after the appearance of a red number once, you bet on a black number. A depth of 3 for example means that a red number has to appear three times in a row before betting on black.    |
 | **minBet** | Minimum betting capital |
