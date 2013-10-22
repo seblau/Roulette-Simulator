@@ -2,11 +2,10 @@ import random
 import matplotlib.pyplot as plt
 
 redNumbers = (1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36)
-history = []
-fund_development = []
-mean_development = []
 modes = ('red', 'black', 'even', 'odd', 'low', 'high')
 bets = {'red': 'black', 'black': 'red', 'even': 'odd', 'odd': 'even', 'low': 'high', 'high': 'low'}
+debug = False
+
 
 def findSequence():
 	broke = False
@@ -69,53 +68,75 @@ def win():
 
 if __name__ == "__main__":
 
-	fund = 315
+	startingCapital = 315
 	depth = 3
-	minBet = 5
+	minBet = 10
 	maxBet = 900
 
-	status = 'WAIT'
-	sequence = None
-	bet = None
-	amount = minBet
+	numberOfPlays = 100
+	playingDuration = 50
 
-	for i in range(1, 50):
-		number = random.randint(0, 36)
-		history.append(number)
-		fund_development.append(fund)
+	mean_development = [0] * playingDuration
 
-		if bet is not None:
-			if win():
-				fund = fund + amount
-				print 'WON %d, %d in pot' % (amount, fund)
-				status = 'WAIT'
-				sequence = None
-				bet = None
-				amount = minBet
-			else:
-				fund = fund - amount
-				if fund == 0:
-					print 'No money left'
-					break
+	for j in range(numberOfPlays):
+		if debug: print '###### Game number %d started ######' % (j)
+
+		fund = startingCapital
+		fund_development = []
+		history = []
+		status = 'WAIT'
+		sequence = None
+		bet = None
+		amount = minBet
+
+		for i in range(playingDuration):
+			number = random.randint(0, 36)
+			history.append(number)
+	
+			if bet is not None:
+				if win():
+					fund = fund + amount * 2
+					if debug: print 'WON %d, %d in pot' % (amount, fund)
+					status = 'WAIT'
+					sequence = None
+					bet = None
+					amount = minBet
 				else:
-					amount = amount * 2
+					if fund == 0:
+						if debug: print 'No money left'
+						break
+					else:
+						amount = amount * 2
 
-		if status == 'WAIT':
-			sequence = findSequence()
-			if sequence is not None:
-				print sequence
-				status = 'PLAY'
+			fund_development.append(fund)
+	
+			if status == 'WAIT':
+				sequence = findSequence()
+				if sequence is not None:
+					if debug: print sequence
+					status = 'PLAY'
+				else:
+					status = 'WAIT'
+	
+			if status == 'PLAY':
+				bet = placeBet()
+				if fund < amount: amount = fund
+				if amount > maxBet: amount = minBet
+				if debug: print 'Bet %d on %s' % (amount, bet)
+				fund = fund - amount
 			else:
-				status = 'WAIT'
+				bet = None
 
-		if status == 'PLAY':
-			bet = placeBet()
-			if fund < amount: amount = fund
-			if amount > maxBet: amount = minBet
-			print 'Bet %d on %s' % (amount, bet)
-		else:
-			bet = None
+		for f in range(playingDuration):
+			if f >= len(fund_development):
+				h = 0
+			else:
+				h = fund_development[f]
 
-	plt.plot(fund_development, label='fund development')
+			mean_development[f] = (mean_development[f] * j + h) * 1.0 / (j + 1)
+
+	plt.xlabel('number of games')
+	plt.ylabel('money')
+	plt.plot(mean_development, label='mean fund development')
 	plt.legend()
 	plt.show()
